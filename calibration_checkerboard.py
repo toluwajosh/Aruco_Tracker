@@ -28,39 +28,43 @@ objp = np.zeros((cbrow * cbcol, 3), np.float32)
 objp[:, :2] = np.mgrid[0:cbcol, 0:cbrow].T.reshape(-1, 2)
 
 # Arrays to store object points and image points from all the images.
-objpoints = [] # 3d point in real world space
-imgpoints = [] # 2d points in image plane.
+objpoints = []  # 3d point in real world space
+imgpoints = []  # 2d points in image plane.
 
-images = glob.glob('calib_images/*.jpg')
+images = glob.glob("calib_images/checkerboard/*.jpg")
 
 for fname in images:
     img = cv2.imread(fname)
-    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, (7,6),None)
+    ret, corners = cv2.findChessboardCorners(gray, (7, 6), None)
 
     # If found, add object points, image points (after refining them)
     if ret == True:
         objpoints.append(objp)
 
-        corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+        corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
         imgpoints.append(corners2)
 
         # Draw and display the corners
-        img = cv2.drawChessboardCorners(img, (cbcol, cbrow), corners2,ret)
-        cv2.imshow('img',img)
+        img = cv2.drawChessboardCorners(img, (cbcol, cbrow), corners2, ret)
+        cv2.imshow("img", img)
         cv2.waitKey(WAIT_TIME)
 
 cv2.destroyAllWindows()
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+    objpoints, imgpoints, gray.shape[::-1], None, None
+)
 
 # ---------- Saving the calibration -----------------
-cv_file = cv2.FileStorage("calib_images/test.yaml", cv2.FILE_STORAGE_WRITE)
+cv_file = cv2.FileStorage("calib_images/logicool_hd_1080p.yaml", cv2.FILE_STORAGE_WRITE)
 cv_file.write("camera_matrix", mtx)
 cv_file.write("dist_coeff", dist)
+print(rvecs[0])
+print(tvecs[0])
+# cv_file.write("rvecs", rvecs)
+# cv_file.write("tvecs", tvecs)
 
 # note you *release* you don't close() a FileStorage object
 cv_file.release()
-
-
